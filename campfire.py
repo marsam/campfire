@@ -11,21 +11,26 @@ https://github.com/37signals/campfire-api
 
 from json import loads
 from base64 import b64encode
-from urlparse import urljoin
+try:
+    from urllib.parse import urljoin
+    _b = lambda s: s.encode('latin-1')
+except ImportError:
+    from urlparse import urljoin
+    _b = lambda s: s
 
 import urllib3
 
 
 def _basic_auth(username, password):
-    encoded_str = b64encode('{0}:{1}'.format(username, password)).decode('utf-8')
+    encoded_str = b64encode(_b('{0}:{1}'.format(username, password))).decode('utf-8')
     return 'Basic {0}'.format(encoded_str)
 
 
 class Campfire(object):
-    def __init__(self, account, token):
+    def __init__(self, account, token, http=None):
         self.account = account
         self.auth = _basic_auth(token, '')
-        self.http = urllib3.PoolManager()
+        self.http = http or urllib3.PoolManager()
         self.baseurl = 'https://{0}.campfirenow.com'.format(account)
 
     def _request(self, method, endpoint, **kwargs):
@@ -134,12 +139,21 @@ class Campfire(object):
 
     ### Streaming
     def stream(self, roomid):
-        raise NotImplementedError
-        # headers = {
-        #     'User-Agent': 'Campfire.py (rodasmario2@gmail.com)',
-        #     'Authorization': self.auth,
-        #     'Content/Type': 'application/json',
-        # }
-        # self.join_room(roomid)
-        # endpoint = 'https://streaming.campfirenow.com/room/{0}/live.json'.format(roomid)
-        # response = self.http.request('GET', endpoint, headers=headers, preload_content=False)
+        headers = {
+            'User-Agent': 'Campfire.py (rodasmario2@gmail.com)',
+            'Authorization': self.auth,
+            'Content/Type': 'application/json',
+        }
+        self.join_room(roomid)
+        endpoint = 'https://streaming.campfirenow.com/room/{0}/live.json'.format(roomid)
+        response = self.http.request('GET', endpoint, headers=headers, preload_content=False)
+        buf = ''
+        for chunk in response.stream(amt=1):
+            if chunk == ' ':     # Campfire hearbeat
+                continue
+            buf += chunk
+            head, _, tail= buf.partition('\r')
+            if not tail:
+                continue
+            buf = tail
+            yield head
