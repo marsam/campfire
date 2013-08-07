@@ -150,7 +150,7 @@ class Campfire(object):
         buf = ''
         for chunk in response.stream(amt=1):
             if chunk == ' ':     # Campfire heartbeat
-                continue
+                pass
             buf += chunk
             data, _, tail= buf.partition('\r')
             if not tail:
