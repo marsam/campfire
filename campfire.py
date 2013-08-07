@@ -149,11 +149,11 @@ class Campfire(object):
         response = self.http.request('GET', endpoint, headers=headers, preload_content=False)
         buf = ''
         for chunk in response.stream(amt=1):
-            if chunk == ' ':     # Campfire hearbeat
+            if chunk == ' ':     # Campfire heartbeat
                 continue
             buf += chunk
-            head, _, tail= buf.partition('\r')
+            data, _, tail= buf.partition('\r')
             if not tail:
                 continue
             buf = tail
-            yield head
+            yield loads(data)
