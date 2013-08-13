@@ -4,7 +4,7 @@
 from distutils.core import setup
 
 setup(
-    name='rae',
+    name='campfire',
     version='0.1',
     author='Mario Rodas',
     author_email='rodasmario2@gmail.com',
@@ -13,6 +13,7 @@ setup(
     license='MIT License',
     description='A simple campfire api implementation.',
     install_requires=[
+        'six',
         'urllib3',
     ],
     classifiers=[

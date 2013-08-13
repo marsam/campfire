@@ -9,20 +9,19 @@ A simple campfire api implementation.
 https://github.com/37signals/campfire-api
 """
 
+from six import b
 from json import loads
 from base64 import b64encode
 try:
     from urllib.parse import urljoin
-    _b = lambda s: s.encode('latin-1')
 except ImportError:
     from urlparse import urljoin
-    _b = lambda s: s
 
 import urllib3
 
 
 def _basic_auth(username, password):
-    encoded_str = b64encode(_b('{0}:{1}'.format(username, password))).decode('utf-8')
+    encoded_str = b64encode(b('{0}:{1}'.format(username, password))).decode('utf-8')
     return 'Basic {0}'.format(encoded_str)
 
 
@@ -44,7 +43,7 @@ class Campfire(object):
             headers.update(kwargs['headers'])
         response = self.http.request(method, url=url, headers=headers, **kwargs)
         try:
-            return loads(response.data)
+            return loads(response.data.decode('utf-8'))
         except ValueError:
             return
 
@@ -147,13 +146,13 @@ class Campfire(object):
         self.join_room(roomid)
         endpoint = 'https://streaming.campfirenow.com/room/{0}/live.json'.format(roomid)
         response = self.http.request('GET', endpoint, headers=headers, preload_content=False)
-        buf = ''
+        buf = b''
         for chunk in response.stream(amt=1):
             if chunk == ' ':     # Campfire heartbeat
                 pass
             buf += chunk
-            data, _, tail= buf.partition('\r')
+            data, _, tail = buf.partition(b('\r'))
             if not tail:
                 continue
             buf = tail
-            yield loads(data)
+            yield loads(data.decode('utf-8'))
