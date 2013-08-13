@@ -12,6 +12,7 @@ https://github.com/37signals/campfire-api
 from six import b
 from json import loads
 from base64 import b64encode
+from os.path import basename
 try:
     from urllib.parse import urljoin
 except ImportError:
@@ -119,22 +120,27 @@ class Campfire(object):
     ### Users
     def get_user(self, userid):
         endpoint = '/users/{0}.json'.format(userid)
-        return self._put('GET', endpoint)
+        return self._request('PUT', endpoint)
 
     def me(self):
         return self._request('GET', '/users/me.json')
 
     ### Uploads
     def upload(self, roomid, filename):    # TODO
-        raise NotImplementedError
+        endpoint = '/room/{0}/uploads.json'.format(roomid)
+        with open(filename, 'rb') as f:
+            fields = {
+                'upload': (basename(f.name), f.read()),
+            }
+            return self._request('POST', endpoint, fields=fields, encode_multipart=True)
 
     def get_uploads(self, roomid):
         endpoint = '/room/{0}/uploads.json'.format(roomid)
-        return self._put('GET', endpoint)
+        return self._request('PUT', endpoint)
 
     def get_upload(self, roomid, upload_msgid):
         endpoint = '/room/{0}/messages/{1}/upload.json'.format(roomid, upload_msgid)
-        return self._put('GET', endpoint)
+        return self._request('PUT', endpoint)
 
     ### Streaming
     def stream(self, roomid):
