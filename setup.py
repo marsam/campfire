@@ -3,6 +3,8 @@
 
 from distutils.core import setup
 
+readme = open('README.rst').read()
+
 setup(
     name='campfire',
     version='0.1',
@@ -12,9 +14,10 @@ setup(
     py_modules=['campfire'],
     license='MIT License',
     description='A simple campfire api implementation.',
+    long_description=readme,
     install_requires=[
         'six',
-        'urllib3',
+        'urllib3>=1.7',
     ],
     classifiers=[
         'Intended Audience :: Developers',

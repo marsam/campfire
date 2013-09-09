@@ -5,8 +5,6 @@
 Campfire
 ========
 A simple campfire api implementation.
-
-https://github.com/37signals/campfire-api
 """
 
 from six import b
